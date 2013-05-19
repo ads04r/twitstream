@@ -1,7 +1,19 @@
 {
-   "include" : [
-      "DrAshSmith"
-   ],
-   "stylesheet" : "css/basic.css",
-   "exclude" : []
+   "tables" : {
+      "users" : "TwitterUsers",
+      "tweets" : "Twitter",
+      "replies" : "TwitterReplies"
+   },
+   "connection" : {
+      "database" : "",
+      "password" : "",
+      "username" : "",
+      "host" : ""
+   },
+   "query" : {
+      "include" : ["DrAshSmith"],
+      "exclude" : [],
+      "interval" : 5000
+   },
+   "style" : ".\/twitstream.css.php"
 }
