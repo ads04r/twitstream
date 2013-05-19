@@ -8,7 +8,7 @@ Features
 
 * Client written in HTML/JavaScript - runs on anything with a browser
 * Customisable styles
-* All Twitter auth happen server side - client acts as a wrapper
+* All Twitter interaction is server side - client just acts as a wrapper
 * Keeps complete history by default
 
 Requirements
@@ -18,13 +18,10 @@ Requirements
 * A box or VM with Apache/PHP (may be the same box)
 * A MySQL database accessable by both of the above
 
-* Codebird - https://github.com/mynetx/codebird-php
-
 Installation
 ------------
 
 * Copy the contents of 'server' to a directory in yout home
-* Obtain 'codebird.php' and copy it into the same directory as above
 * Modify the settings.json file to include your MySQL login credentials
 
 * Create the tables in the MySQL database (use the file create_tables.sql)
