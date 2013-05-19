@@ -1,0 +1,13 @@
+{
+   "tables" : {
+      "users" : "TwitterUsers",
+      "tweets" : "Twitter",
+      "replies" : "TwitterReplies"
+   },
+   "connection" : {
+      "database" : "",
+      "password" : "",
+      "username" : "",
+      "host" : ""
+   }
+}
