@@ -21,7 +21,7 @@ Requirements
 Installation
 ------------
 
-* Copy the contents of 'server' to a directory in yout home
+* Copy the contents of 'server' to a directory within your home
 * Modify the settings.json file to include your MySQL login credentials
 
 * Create the tables in the MySQL database (use the file create_tables.sql)
