@@ -62,6 +62,10 @@ optimal.
 Now it's a simple case of opening the client index.php script in a web
 browser.
 
+* If you plan to leave the server running for extended periods, and with
+  intervals of a minute or more, I recommend adding 'search' to your crontab.
+  This will ensure that tweets keep coming even if the server fails once.
+
 License
 -------
 
