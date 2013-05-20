@@ -61,3 +61,14 @@ optimal.
 
 Now it's a simple case of opening the client index.php script in a web
 browser.
+
+License
+-------
+
+This work is released under the GNU General Public License version 2.0
+http://www.gnu.org/licenses/gpl-2.0.html
+
+Basically, this means that if you just want to use it for your own
+public display, don't worry. If you want to write other stuff based on it
+then you'll have to release it under the same license, although I
+heartily encourage such modifications.
