@@ -4,6 +4,11 @@
       "tweets" : "Twitter",
       "replies" : "TwitterReplies"
    },
+   "twitter" : {
+      "token" : "",
+      "secret" : "",
+      "search" : ""
+   },
    "connection" : {
       "database" : "",
       "password" : "",
