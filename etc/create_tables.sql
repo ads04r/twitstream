@@ -28,3 +28,14 @@ CREATE TABLE IF NOT EXISTS `TwitterReplies` (
   KEY `Parent` (`Parent`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `TwitterMedia` (
+	`ID` VARCHAR(34) NOT NULL,
+	`Tweet` VARCHAR(20) NOT NULL,
+	`Ordering` TINYINT UNSIGNED NOT NULL,
+	`Type` VARCHAR(10) NOT NULL,
+	`URL` TEXT NOT NULL,
+	PRIMARY KEY (`ID`),
+	INDEX `Tweet` (`Tweet`),
+	INDEX `Type` (`Type`),
+	INDEX `Ordering` (`Ordering`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;

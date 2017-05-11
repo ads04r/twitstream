@@ -3,6 +3,28 @@
 
 include_once(dirname(dirname(__FILE__)) . "/lib/codebird/src/codebird.php");
 
+function opengraphImage($url) {
+	$image = "";
+	libxml_use_internal_errors(true);
+	$c = file_get_contents($url);
+	$d = new DomDocument();
+	$d->loadHTML($c);
+	$xp = new domxpath($d);
+	foreach ($xp->query("//meta[@property='og:image']") as $el) {
+		$image = "" . $el->getAttribute("content");
+	}
+
+	$item = array();
+	if(strlen($image) > 0)
+	{
+		$item['media_url_https'] = $image;
+		$item['type'] = "extmedia";
+		$item['id'] = md5($image);
+		$item['id_str'] = $item['id'];
+	}
+	return($item);
+}
+
 function remoteFile($url, $cacheexpires=0) {
 	
 	$ch = curl_init($url);
@@ -17,7 +39,7 @@ function remoteFile($url, $cacheexpires=0) {
 	return($output);
 }
 
-function twitterSearch($q, $tweettable, $usertable="", $repliestable="") {
+function twitterSearch($q, $tweettable, $usertable="", $repliestable="", $mediatable="") {
 
 	global $cb;
 	global $link;
@@ -29,6 +51,7 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="") {
 
 		$tweet = (array) $tweet_obj;
 		$metadata = (array) $tweet['metadata'];
+		$entities = (array) $tweet['entities'];
 		if(array_key_exists("iso_language_code", $metadata))
 		{
 			if(strcmp($metadata['iso_language_code'], "en") != 0) { continue; } // Filter non-english
@@ -43,8 +66,8 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="") {
 		$user = (array) $tweet['user'];
 		$media = array();
 		$urls = array();
-		if(array_key_exists("media", $tweet)) { $media = (array) $tweet['media']; }
-		if(array_key_exists("urls", $tweet)) { $media = (array) $tweet['urls']; }
+		if(array_key_exists("media", $entities)) { $media = (array) $entities['media']; }
+		if(array_key_exists("urls", $entities)) { $media = (array) $entities['urls']; }
 
 		if((count($media) == 0) && (strlen(stristr($tweet['text'], "://")) > 0)) { continue; } // Remove URL spam
 
@@ -75,6 +98,19 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="") {
 				$item['parent'] = $tweet['in_reply_to_status_id'];
 				$query = "insert ignore into " . $repliestable . " (Child, Parent) values ('" . $link->escape_string($item['id']) . "', '" . $link->escape_string($item['parent']) . "');";
 				$link->query($query);
+			}
+		}
+
+		if(strlen($mediatable) > 0) {
+			$ord = 1;
+			foreach($media as $media_item)
+			{
+				$p = (array) $media_item;
+				if(!(array_key_exists("id", $p))) { $p = opengraphImage($p['expanded_url']); }
+				if(!(array_key_exists("id", $p))) { continue; }
+				$query = "insert ignore into " . $mediatable . " (ID, Tweet, Ordering, Type, URL) values ('" . $link->escape_string($p['id_str']) . "', '" . $link->escape_string($item['id']) . "', '" . $ord . "', '" . $link->escape_string($p['type']) . "', '" . $link->escape_string($p['media_url_https']) . "');";
+				$link->query($query);
+				$ord++;
 			}
 		}
 
@@ -117,6 +153,7 @@ $config = json_decode(file_get_contents($configfile), true);
 @$table_tweets = "" . $config_tables['tweets'];
 @$table_users = "" . $config_tables['users'];
 @$table_replies = "" . $config_tables['replies'];
+@$table_media = "" . $config_tables['media'];
 
 \Codebird\Codebird::setConsumerKey($config_twitter['apikey'], $config_twitter['apisecret']);
 $cb = \Codebird\Codebird::getInstance();
@@ -126,11 +163,11 @@ $link = new mysqli($dbhost, $dbuser, $dbpass, $database);
 if($interval > 0) {
 
 	do {
-		$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies);
+		$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies, $table_media);
 		sleep($interval);
 	} while(true);
 }
 
-$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies);
+$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies, $table_media);
 
 print(count($hits) . " results found\n");
