@@ -16,6 +16,7 @@ function RenderFeed() {
 	$include = $config['query']['include'];
 	$exclude = $config['query']['exclude'];
 	$table = $config['tables']['tweets'];
+	$table_media = $config['tables']['media'];
 
 	$dbhost = $config['connecton']['host'];
 	$dbuser = $config['connection']['username'];
@@ -41,16 +42,27 @@ not like 'RT %' and Message not like '@%' ";
 		$id = $line['ID'];
 		$user = $line['User'];
 		$text = $line['Message'];
-		if((preg_match("/[^\\x00-\\x7F]/", $text) == 0) & (preg_match("|http://|", $text) == 0) & (preg_match("|https://|", $text) == 0)) {
-			$item = array();
-			$item['id'] = $id;
-			$item['user'] = $user;
-			$item['text'] = $text;
-			$r[] = $item;
-			$i++;
-		}
+		$item = array();
+		$item['id'] = $id;
+		$item['user'] = $user;
+		$item['text'] = $text;
+		$r[] = $item;
+		$i++;
 	}
 	mysql_free_result($result);
+
+	foreach($r as &$rr)
+	{
+		$images = array();
+		$query = "select * from " . $table_media . " where Tweet='" . $rr['id'] . "' order by Ordering ASC;";
+		$result = mysql_query($query);
+		while($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$images[] = $line['URL'];
+		}
+		mysql_free_result($result);
+
+		if(count($images) > 0) { $rr['media'] = $images; }
+	}
 
 	header("Content-type: application/json");
 	print(json_encode($r));
