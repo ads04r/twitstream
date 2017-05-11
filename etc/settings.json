@@ -2,17 +2,18 @@
    "tables" : {
       "users" : "TwitterUsers",
       "tweets" : "Twitter",
-      "replies" : "TwitterReplies"
+      "replies" : "TwitterReplies",
+      "media" : "TwitterMedia",
+      "url" : "TwitterURLs"
    },
    "twitter" : {
-      "token" : "",
-      "secret" : "",
-      "search" : ""
+      "apikey" : "",
+      "apisecret" : ""
    },
    "connection" : {
-      "database" : "",
+      "database" : "twitter",
       "password" : "",
-      "username" : "",
-      "host" : ""
+      "username" : "twitter",
+      "host" : "localhost"
    }
 }
