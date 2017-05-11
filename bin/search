@@ -1,0 +1,136 @@
+#!/usr/bin/php -q
+<?php
+
+include_once(dirname(dirname(__FILE__)) . "/lib/codebird/src/codebird.php");
+
+function remoteFile($url, $cacheexpires=0) {
+	
+	$ch = curl_init($url);
+	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_USERAGENT, "User-Agent: twitstream/2.0");
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+	$output = curl_exec($ch);
+	curl_close($ch);
+		
+	return($output);
+}
+
+function twitterSearch($q, $tweettable, $usertable="", $repliestable="") {
+
+	global $cb;
+	global $link;
+
+	$r = array();
+	$rr = (array) $cb->search_tweets("q=#" . $q, true);
+
+	foreach($rr['statuses'] as $tweet_obj){
+
+		$tweet = (array) $tweet_obj;
+		$metadata = (array) $tweet['metadata'];
+		if(array_key_exists("iso_language_code", $metadata))
+		{
+			if(strcmp($metadata['iso_language_code'], "en") != 0) { continue; } // Filter non-english
+		}
+		if(strcmp(substr($tweet['text'], 0, 1), "@") == 0) { continue; } // Filter direct tweets
+		if(strcmp(substr($tweet['text'], 0, 4), "RT @") == 0) { continue; } // Filter retweets
+
+		$item = array();
+
+		$ds = $tweet['created_at'];
+		$dt = strtotime($ds);
+		$user = (array) $tweet['user'];
+		$media = array();
+		$urls = array();
+		if(array_key_exists("media", $tweet)) { $media = (array) $tweet['media']; }
+		if(array_key_exists("urls", $tweet)) { $media = (array) $tweet['urls']; }
+
+		if((count($media) == 0) && (strlen(stristr($tweet['text'], "://")) > 0)) { continue; } // Remove URL spam
+
+		$item['id'] = $tweet['id'];
+		$item['date'] = $dt;
+		$item['text'] = $tweet['text'];
+		$item['user'] = "" . $user['screen_name'];
+		$item['image'] = $user['profile_image_url_https'];
+		$item['name'] = $user['name'];
+		$item['userid'] = $user['id'];
+
+		$query = "insert ignore into " . $tweettable . " (ID, User, UserID, Date, Message) values ('" . $link->escape_string($item['id']) . "', '" . $link->escape_string($item['user']) . "', '" . $link->escape_string($item['userid']) . "', FROM_UNIXTIME(" . $dt . "), '" . $link->escape_string($item['text']) . "');";
+		$link->query($query);
+
+		if(strlen($usertable) > 0) {
+			if(array_key_exists("from_user_id", $tweet)) {
+				$user_id = $user['id'];
+				$user_username = $user['screen_name'];
+				$user_name = $user['name'];
+				$user_image = $user['profile_image_url_https'];
+				$query = "insert into " . $usertable . " (ID, Username, Name, Image) values ('" . mysql_real_escape_string($user_id) . "', '" . mysql_real_escape_string($user_username) . "', '" . mysql_real_escape_string($user_name) . "', '" . mysql_real_escape_string($user_image) . "');";
+				$link->query($query);
+			}
+		}
+
+		if(strlen($repliestable) > 0) {
+			if(array_key_exists("in_reply_to_status_id", $tweet)) {
+				$item['parent'] = $tweet['in_reply_to_status_id'];
+				$query = "insert ignore into " . $repliestable . " (Child, Parent) values ('" . $link->escape_string($item['id']) . "', '" . $link->escape_string($item['parent']) . "');";
+				$link->query($query);
+			}
+		}
+
+		$r[] = $item;
+	}
+
+	return($r);
+}
+
+$configfile = dirname(dirname(__FILE__)) . "/etc/settings.json";
+if(!(file_exists($configfile))) {
+	fwrite(STDERR, "Error: cannot find settings.json\n");
+	exit();
+}
+
+$query = "";
+$interval = 0;
+if(count($argv) > 1) {
+	$query = $argv[1];
+}
+if(count($argv) > 2) {
+	$interval = (int) $argv[2];
+}
+
+if(strlen($query) == 0) {
+	fwrite(STDERR, "Usage: search [query] ([interval])\n");
+	exit();
+}
+
+$config = json_decode(file_get_contents($configfile), true);
+@$config_conn = $config['connection'];
+@$config_tables = $config['tables'];
+@$config_twitter = $config['twitter'];
+
+@$dbhost = "" . $config_conn['host'];
+@$dbuser = "" . $config_conn['username'];
+@$dbpass = "" . $config_conn['password'];
+@$database = "" . $config_conn['database'];
+
+@$table_tweets = "" . $config_tables['tweets'];
+@$table_users = "" . $config_tables['users'];
+@$table_replies = "" . $config_tables['replies'];
+
+\Codebird\Codebird::setConsumerKey($config_twitter['apikey'], $config_twitter['apisecret']);
+$cb = \Codebird\Codebird::getInstance();
+
+$link = new mysqli($dbhost, $dbuser, $dbpass, $database);
+
+if($interval > 0) {
+
+	do {
+		$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies);
+		sleep($interval);
+	} while(true);
+}
+
+$hits = twitterSearch($query, $table_tweets, $table_users, $table_replies);
+
+print(count($hits) . " results found\n");

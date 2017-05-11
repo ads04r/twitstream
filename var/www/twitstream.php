@@ -2,7 +2,7 @@
 
 function Settings() {
 
-	$configfile = realpath(dirname(__FILE__)) . "/settings.json";
+	$configfile = dirname(dirname(dirname(__FILE__))) . "/etc/settings.json";
 	if(!(file_exists($configfile))) {
 		return array();
 	}
@@ -75,36 +75,33 @@ function tweetCode(user, message) {
 	return(html);
 }
 function scrollTweets() {
-	var url = "./tweets.json.php";
+	var r = Math.random();
+	var url = "botty.json.php?" + r;
 	var htmlcode = "";
-	$.ajax({
-		type: "GET",
-		url: url,
-		dataType: "json",
-		success: function(json) {
-			var done = false;
-			var htmlcode = "";
-			$.each(json, function(key, value) {
-				if(lastTweet == "" + value['id']) {
-					done = true;
-				}
-				if(done) {
-					return;
-				}
-				htmlcode = htmlcode + tweetCode(value['user'], value['text']);
-			});
-			lastTweet = "" + json[0]['id'];
-			if(htmlcode.length > 0) {
-				$('body').prepend('<div id="hidden">' + htmlcode + '</div>')
-				var h = $('#hidden').height();
-				$('#hidden').remove();
-				$('#content').prepend('<div id="filler">&nbsp;</div>');
-				$('#filler').animate({height: h}, 500, function() {
-					$('#filler').remove();
-					$('#content').prepend(htmlcode);
-					$("#content").find("div.tweet:gt(20)").remove();
-				});
+	$.getJSON(url, function(json) {
+		console.log("DONE");
+		var done = false;
+		var htmlcode = "";
+		$.each(json, function(key, value) {
+			if(lastTweet == "" + value['id']) {
+				done = true;
 			}
+			if(done) {
+				return;
+			}
+			htmlcode = htmlcode + tweetCode(value['user'], value['text']);
+		});
+		lastTweet = "" + json[0]['id'];
+		if(htmlcode.length > 0) {
+			$('body').prepend('<div id="hidden">' + htmlcode + '</div>')
+			var h = $('#hidden').height();
+			$('#hidden').remove();
+			$('#content').prepend('<div id="filler">&nbsp;</div>');
+			$('#filler').animate({height: h}, 500, function() {
+				$('#filler').remove();
+				$('#content').prepend(htmlcode);
+				$("#content").find("div.tweet:gt(20)").remove();
+			});
 		}
 	});
 }
@@ -131,11 +128,11 @@ function placeTweets() {
 
 $(document).ready(function() {
 	placeTweets();
-	setInterval(scrollTweets, <? print($interval); ?>);
+	setInterval(scrollTweets, <?php print($interval); ?>);
 });
 
 
-// <? exit();
+<?php
 
 }
 
@@ -179,13 +176,14 @@ div#hidden {
 	position: absolute;
 	display: block;
 	visibility: hidden;
-}<?
+}<?php
 }
 
 function RenderHTML() { 
 
 	$config = Settings();
 	$style = $config['style'];
+	if(strlen($style) == 0) { $style="twitstream.css.php"; }
 
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> <html xmlns="http://www.w3.org/1999/xhtml">
@@ -193,13 +191,14 @@ function RenderHTML() {
 		<title>Twitstream</title>
 		<meta http-equiv="Content-Language" content="English" />
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<link rel="stylesheet" type="text/css" href="<? print($style); ?>" />
- 		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="<?php print($style); ?>" />
+ 		<script type="text/javascript" src="jquery.min.js"></script>
 		<script type="text/javascript" src="twitstream.js.php"></script>
 	</head>
 	<body>
 			<div id="content"></div>
 	</body>
-</html> <?
+</html> <?php
+
 }
 
