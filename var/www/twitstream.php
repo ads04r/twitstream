@@ -1,17 +1,6 @@
 <?php
 
-function Settings() {
-
-	$configfile = dirname(dirname(dirname(__FILE__))) . "/etc/settings.json";
-	if(!(file_exists($configfile))) {
-		return array();
-	}
-	return( json_decode(file_get_contents($configfile), true) );
-}
-
-function RenderFeed() {
-
-	$config = Settings();
+function tweets($config) {
 
 	$include = $config['query']['include'];
 	$exclude = $config['query']['exclude'];
@@ -64,13 +53,11 @@ not like 'RT %' and Message not like '@%' ";
 		if(count($images) > 0) { $rr['media'] = $images; }
 	}
 
-	header("Content-type: application/json");
-	print(json_encode($r));
+	return($r);
 }
 
-function RenderJavaScript() {
+function RenderJavaScript($config) {
 
-	$config = Settings();
 	$interval = (int) $config['query']['interval'];
 
 	if($interval < 1000) {

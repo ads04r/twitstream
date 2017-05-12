@@ -1,3 +1,6 @@
 [submodule "lib/codebird"]
 	path = lib/codebird
 	url = https://github.com/jublonet/codebird-php.git
+[submodule "lib/valium"]
+	path = lib/valium
+	url = git@github.com:ads04r/valium.git
