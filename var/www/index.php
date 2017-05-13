@@ -21,7 +21,7 @@ $v->route("|/$|", function($m, $get, $post) {
 $v->route("|/tweets.json$|", function($m, $get, $post)
 {
 	$config = settings();
-	tweets($config);
+	return(tweets($config));
 });
 
 $ret = $v->run();

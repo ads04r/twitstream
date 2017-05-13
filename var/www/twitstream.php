@@ -1,9 +1,19 @@
 <?php
 
+function deurl($text)
+{
+	$words = explode(" ", $text);
+	$ret = array();
+	foreach($words as $word)
+	{
+		if(strlen(stristr($word, "://")) > 0) { continue; }
+		$ret[] = $word;
+	}
+	return(implode(" ", $ret));
+}
+
 function tweets($config) {
 
-	$include = $config['query']['include'];
-	$exclude = $config['query']['exclude'];
 	$table = $config['tables']['tweets'];
 	$table_media = $config['tables']['media'];
 
@@ -12,25 +22,20 @@ function tweets($config) {
 	$dbpass = $config['connection']['password'];
 	$database = $config['connection']['database'];
 
-	$link = mysql_pconnect($dbhost, $dbuser, $dbpass) or die("Could not connect");
-	mysql_select_db($database) or die("Could not select database");
+	$link = new mysqli($dbhost, $dbuser, $dbpass, $database);
 
-	$query = "select ID,User,Message from " . mysql_real_escape_string($table) . " where Message like '%" . implode("%' and Message like '%", $include) . "%' and Message 
-not like 'RT %' and Message not like '@%' ";
-	if(count($exclude) > 0) {
-		$query .= "and Message not like '" . implode("%' and Message like '%", $exclude) . "' ";
-	}
+	$query = "select ID,User,Message from " . $link->escape_string($table) . " ";
 	$query .= "order by Date DESC limit 0,40;";
-	$result = mysql_query($query);
+	$result = $link->query($query);
 	$r = array();
 	$i = 0;
-	while($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while($line = $result->fetch_assoc()) {
 		if($i > 20) {
 			continue;
 		}
 		$id = $line['ID'];
 		$user = $line['User'];
-		$text = $line['Message'];
+		$text = deurl($line['Message']);
 		$item = array();
 		$item['id'] = $id;
 		$item['user'] = $user;
@@ -38,17 +43,17 @@ not like 'RT %' and Message not like '@%' ";
 		$r[] = $item;
 		$i++;
 	}
-	mysql_free_result($result);
+	$result->free();
 
 	foreach($r as &$rr)
 	{
 		$images = array();
-		$query = "select * from " . $table_media . " where Tweet='" . $rr['id'] . "' order by Ordering ASC;";
-		$result = mysql_query($query);
-		while($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$query = "select * from " . $link->escape_string($table_media) . " where Tweet='" . $rr['id'] . "' order by Ordering ASC;";
+		$result = $link->query($query);
+		while($line = $result->fetch_assoc()) {
 			$images[] = $line['URL'];
 		}
-		mysql_free_result($result);
+		$result->free();
 
 		if(count($images) > 0) { $rr['media'] = $images; }
 	}

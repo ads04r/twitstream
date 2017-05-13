@@ -1,9 +1,12 @@
-# Enable rewrite engine and route requests to framework
+Options +FollowSymLinks
 RewriteEngine On
 
-RewriteBase /twitstream
-
-RewriteCond %{REQUEST_FILENAME} !-l
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule .* index.php [L,QSA]
+RewriteRule ^(.*)$ /twitstream/index.php [L,QSA]
+
+AddType application/json .json
+AddType application/xml .xml
+AddType application/rdf+xml .rdf
+AddType text/turtle .ttl
+

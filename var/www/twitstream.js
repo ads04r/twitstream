@@ -1,26 +1,38 @@
 
 var lastTweet = '0';
 
-function tweetCode(user, message) {
-	var html = '<div class="tweet"><span class="name">' + user + '</span><span class="message">' + message + '</span></div>';
+function tweetCode(user, message, media) {
+	var html = '<div class="tweet"><span class="name">' + user + '</span><span class="message">' + message + '</span>';
+	console.log("Bum farmer " + media.length);
+	if(media.length > 0)
+	{
+		html = html + '<span class="media">';
+		for(var i = 0; i < media.length; i++)
+		{
+			html = html + '<img src="' + media[i] + '">';
+		}
+		html = html + '</span>';
+	}
+	html = html + '</div>';
 	return(html);
 }
 function scrollTweets() {
 	var r = Math.random();
-	var url = "tweets.json?" + r;
+	var url = "./tweets.json?" + r;
 	var htmlcode = "";
 	$.getJSON(url, function(json) {
-		console.log("DONE");
 		var done = false;
 		var htmlcode = "";
 		$.each(json, function(key, value) {
+			var media = [];
 			if(lastTweet == "" + value['id']) {
 				done = true;
 			}
 			if(done) {
 				return;
 			}
-			htmlcode = htmlcode + tweetCode(value['user'], value['text']);
+			if(value['media']) { media = value['media']; }
+			htmlcode = htmlcode + tweetCode(value['user'], value['text'], media);
 		});
 		lastTweet = "" + json[0]['id'];
 		if(htmlcode.length > 0) {
@@ -37,7 +49,7 @@ function scrollTweets() {
 	});
 }
 function placeTweets() {
-	var url = "./tweets.json.php";
+	var url = "./tweets.json";
 	var htmlcode = "";
 	var last = "";
 	$.ajax({
@@ -49,7 +61,9 @@ function placeTweets() {
 				if(last.length == 0) {
 					last = '' + value['id'];
 				}
-				htmlcode = htmlcode + tweetCode(value['user'], value['text']);
+				var media = [];
+				if(value['media']) { media = value['media']; }
+				htmlcode = htmlcode + tweetCode(value['user'], value['text'], media);
 			});
 			$('#content').html(htmlcode);
 			lastTweet = last;
