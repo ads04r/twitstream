@@ -45,7 +45,7 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="", $mediat
 	global $link;
 
 	$r = array();
-	$rr = (array) $cb->search_tweets("q=#" . $q, true);
+	$rr = (array) $cb->search_tweets("tweet_mode=extended&q=#" . $q, true);
 
 	foreach($rr['statuses'] as $tweet_obj){
 
@@ -56,8 +56,8 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="", $mediat
 		{
 			if(strcmp($metadata['iso_language_code'], "en") != 0) { continue; } // Filter non-english
 		}
-		if(strcmp(substr($tweet['text'], 0, 1), "@") == 0) { continue; } // Filter direct tweets
-		if(strcmp(substr($tweet['text'], 0, 4), "RT @") == 0) { continue; } // Filter retweets
+		if(strcmp(substr($tweet['full_text'], 0, 1), "@") == 0) { continue; } // Filter direct tweets
+		if(strcmp(substr($tweet['full_text'], 0, 4), "RT @") == 0) { continue; } // Filter retweets
 
 		$item = array();
 
@@ -69,11 +69,11 @@ function twitterSearch($q, $tweettable, $usertable="", $repliestable="", $mediat
 		if(array_key_exists("media", $entities)) { $media = (array) $entities['media']; }
 		if(array_key_exists("urls", $entities)) { $media = (array) $entities['urls']; }
 
-		if((count($media) == 0) && (strlen(stristr($tweet['text'], "://")) > 0)) { continue; } // Remove URL spam
+		if((count($media) == 0) && (strlen(stristr($tweet['full_text'], "://")) > 0)) { continue; } // Remove URL spam
 
 		$item['id'] = $tweet['id'];
 		$item['date'] = $dt;
-		$item['text'] = $tweet['text'];
+		$item['text'] = $tweet['full_text'];
 		$item['user'] = "" . $user['screen_name'];
 		$item['image'] = $user['profile_image_url_https'];
 		$item['name'] = $user['name'];
