@@ -6,17 +6,19 @@ A lightweight client/server framework for public twitter displays.
 Features
 --------
 
-* Client written in HTML/JavaScript - runs on anything with a browser
-* Customisable styles
-* All Twitter interaction is server side - client just acts as a wrapper
-* Keeps complete history by default
+* Client written in HTML/JavaScript - runs on anything with a browser.
+* Customisable styles.
+* All Twitter interaction is server side - client just acts as a wrapper,
+  allowing multiple display screens for one Twitter feed without hitting
+  the rate limit.
+* Keeps complete history by default.
 
 Requirements
 ------------
 
-* A box or VM running PHP 5, to which you have SSH access
-* A box or VM with Apache/PHP (may be the same box)
-* A MySQL database accessable by both of the above
+* A box or VM running PHP 5, to which you have SSH access.
+* A box or VM with Apache/PHP (may be the same box).
+* A MySQL database accessable by both of the above.
 
 Installation
 ------------
